@@ -1,34 +1,14 @@
 package com.example.myapplication;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.ClipData;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.webkit.JavascriptInterface;
@@ -36,18 +16,14 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,13 +36,13 @@ public class MainActivity extends AppCompatActivity {
     private ValueCallback mUM;
     ValueCallback<Uri> mUploadMessage;
     ValueCallback<Uri[]> mUploadCallbackAboveL;
-    private final static int FCR=1;
+    private final static int FCR = 1;
 
     private boolean multiple_files = false;
 
     private Context context;
 
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         settings.setUseWideViewPort(true);    //设置webview推荐使用的窗口，使html界面自适应屏幕
         settings.setLoadWithOverviewMode(true);
         settings.setSaveFormData(true);    //设置webview保存表单数据
+        //允许webview对文件的操作
+        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccessFromFileURLs(true);
 
         settings.setSupportMultipleWindows(true);
         settings.setAppCacheEnabled(true); //设置APP可以缓存
@@ -101,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 webView.loadUrl("javascript:javacalljs()");
-                webView.loadUrl("javascript:javacalljswhthargs("+"' hello word'"+")");
+                webView.loadUrl("javascript:javacalljswhthargs(" + "' hello word'" + ")");
             }
         });
 
@@ -112,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         //添加客户端支持
-        webView.setWebChromeClient(new WebChromeClient(){
+        webView.setWebChromeClient(new WebChromeClient() {
 
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
@@ -138,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                         if (fromCamera) {//只处理拍照
 
                             mUploadCallbackAboveL = filePathCallback;//暂存，用于拍完照片后回调H5
-                                return true;//返回true表示APP处理文件选择
+                            return true;//返回true表示APP处理文件选择
 
                         }
                     }
@@ -150,6 +130,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void loadImage(File imageFile) {
+
+        String path = "file://" + imageFile.getAbsolutePath();
+        Log.i("TAG_CTSI", "path = " + path);
+        final String url = "javascript:showImage('" + path + "')";
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl(url);
+            }
+        });
+    }
 
 
     //拍照
@@ -160,9 +152,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //判断返回码不等于0
-        if (requestCode != RESULT_CANCELED){    //RESULT_CANCELED = 0(也可以直接写“if (requestCode != 0 )”)
+        if (requestCode != RESULT_CANCELED) {    //RESULT_CANCELED = 0(也可以直接写“if (requestCode != 0 )”)
             //读取返回码
-            switch (requestCode){
+            switch (requestCode) {
                 case 100:   //相册返回的数据（相册的返回码）
 
                     Uri uri01 = data.getData();
@@ -177,14 +169,19 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 101:  //相机返回的数据（相机的返回码）
 
-                    try {
-                        Bundle bundle = data.getExtras();
-                        // 获取相机返回的数据，并转换为Bitmap图片格式，这是缩略图
-                        Bitmap bitmap = (Bitmap) bundle.get("data");
-                        imageView.setImageBitmap(bitmap);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    File file = new File("/sdcard/temp.jpg");
+                    if (file.exists()) {
+                        Log.i("TAG_CTSI", "文件存在");
+                        loadImage(file.getAbsoluteFile());
                     }
+                    //                    try {
+                    //                        Bundle bundle = data.getExtras();
+                    //                        // 获取相机返回的数据，并转换为Bitmap图片格式，这是缩略图
+                    //                        Bitmap bitmap = (Bitmap) bundle.get("data");
+                    //                        imageView.setImageBitmap(bitmap);
+                    //                    } catch (Exception e) {
+                    //                        e.printStackTrace();
+                    //                    }
                     break;
             }
         }
@@ -217,10 +214,16 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, 101);
-                }
+                //                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                //                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                //                    startActivityForResult(takePictureIntent, 101);
+                //                }
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                //path为保存图片的路径，执行完拍照以后能保存到指定的路径下
+                File file = new File("/sdcard/temp.jpg");
+                Uri imageUri = Uri.fromFile(file);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(intent, 101);
             }
         });
     }
