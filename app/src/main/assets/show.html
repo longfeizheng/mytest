@@ -9,24 +9,28 @@
            document.getElementById("content").innerHTML="<br />android调用了js函数 参数是"+arg;
         }
 
-        function showImage() {
-            var reads= new FileReader();
-            f=document.getElementById('fileImage').files[0];
-            reads.readAsDataURL(f);
-            reads.οnlοad=function (e) {
-                document.getElementById('show').src=this.result;
-            };
+        function showImage(imageFile) {
+           alert("哈哈哈");
+           document.getElementById('show').src=imageFile;
         }
+
+
     </script>
 </head>
-this my html<br /> <br />
-<button onclick="window.wjj.startFunction()">点击调用java代码</button><br/> <br/>
-<button onclick="window.wjj.startFunction('hello word for html ')">点击调用java代码并传递参数</button><br/> <br/>
-<button onclick="window.wjj.startCamera()">打开相机</button><br/> <br/>
-<button onclick="window.onShowFileChooser()">打开相机</button><br/> <br/>
-<div id="content">内容显示</div>
 <body>
-<input id="fileImage" type="file" size="300" onchange="showImage()"  name="fileselect" accept="image/*" />
-<img src="" id="show" width="200">
+
+this my html<br/> <br/>
+<button onclick="window.wjj.startFunction()">点击调用java代码</button>
+<br/> <br/>
+<button onclick="window.wjj.startFunction('hello word for html ')">点击调用java代码并传递参数</button>
+<br/> <br/>
+<button onclick="window.wjj.startCamera()">打开相机1</button>
+<br/> <br/>
+<button onclick="window.onShowFileChooser()">打开相机2</button>
+<br/> <br/>
+<input id="fileImage" type="file" size="300" onchange="showImage()" name="fileselect"
+       accept="image/*"/>
+<img src="" id="show" width="300">
+<div id="content">内容显示</div>
 </body>
 </html>
